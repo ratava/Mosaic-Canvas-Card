@@ -1,0 +1,31 @@
+name: Attach release assets
+
+# Uploads every dist/ file as an individual release asset — the
+# advanced-camera-card pattern. HACS installs a plugin's release assets
+# verbatim, so the assets must be exactly the card files: no archives, no
+# extras (anything attached lands in every user's www/community folder).
+# The payoff is GitHub's per-asset download_count on mosaic-canvas-card.js,
+# which is the install counter.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Upload dist files to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" dist/* \
+            --repo "${{ github.repository }}" \
+            --clobber
